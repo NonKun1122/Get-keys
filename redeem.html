@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get Key</title>
+<style>
+  body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0;}
+  .container { text-align:center; background:#fff; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+  button { padding:8px 15px; font-size:14px; border:none; border-radius:8px; margin:0 5px; cursor:pointer;}
+  .copyBtn { background:#4CAF50; color:white; }
+  .renewBtn { background:#f44336; color:white; }
+  p { margin-top:15px; font-weight:bold; word-break:break-all; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>รับ Key ของคุณ</h1>
+  <p id="keyDisplay">กำลังโหลด...</p>
+  <p id="expireDisplay"></p>
+  <button class="copyBtn" id="copyBtn">คัดลอก</button>
+  <button class="renewBtn" id="renewBtn">ต่ออายุ</button>
+</div>
+
+<script>
+// ฟังก์ชัน format Key
+function formatKey(key){ return key.match(/.{1,4}/g).join("-"); }
+
+// โหลด Key จาก localStorage
+let keyData = JSON.parse(localStorage.getItem("generatedKeyData")||"{}");
+let now = Date.now();
+
+if(!keyData.key){
+  document.getElementById("keyDisplay").textContent = "❌ ยังไม่มี Key สร้างไว้";
+  document.getElementById("expireDisplay").textContent = "";
+} else {
+  document.getElementById("keyDisplay").textContent = formatKey(keyData.key);
+  document.getElementById("expireDisplay").textContent = "หมดอายุ: "+new Date(keyData.expire).toLocaleString();
+}
+
+// ปุ่มคัดลอก Key
+document.getElementById("copyBtn").addEventListener("click", ()=>{
+  if(keyData.key){
+    navigator.clipboard.writeText(keyData.key).then(()=> alert("คัดลอก Key เรียบร้อย!"));
+  }
+});
+
+// ปุ่มต่ออายุ → ไปหน้า generate.html
+document.getElementById("renewBtn").addEventListener("click", ()=>{
+  if(!keyData.key){
+    alert("❌ ยังไม่มี Key ให้ต่ออายุ");
+    return;
+  }
+
+  // ตรวจสอบเวลา 1 นาที
+  now = Date.now();
+  const lastRenew = keyData.lastRenew || 0;
+  if(now - lastRenew < 60000){
+    alert("⏳ ต้องรออีก " + Math.ceil((60000-(now-lastRenew))/1000) + " วิ ก่อนต่ออายุ");
+    return;
+  }
+
+  // ตั้ง flag ต่ออายุ
+  localStorage.setItem("renewing", "true");
+  window.location.href = "index.html";
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กรุณารอสักครู่...</title>
+<style>
+  body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0;}
+  .container { text-align:center; background:#fff; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>กรุณารอสักครู่...</h1>
+  <p id="timer">10</p>
+</div>
+
+<script>
+let time = 10;
+let timer = document.getElementById("timer");
+let interval = setInterval(()=>{
+  time--;
+  timer.textContent = time;
+  if(time <= 0){
+    clearInterval(interval);
+    window.location.href = "redeem.html";
+  }
+},1000);
+</script>
+</body>
+</html>
