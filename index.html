@@ -5,22 +5,30 @@
 <title>Get Key</title>
 </head>
 <body>
-  <h1>🔑 ระบบแจก Key</h1>
-  <input id="userId" placeholder="ใส่ Roblox UserId ของคุณ">
-  <button onclick="getKey()">Get Key</button>
+  <h1>🔑 สร้าง Key</h1>
+  <p id="userInfo"></p>
+  <button id="createBtn">สร้าง Key</button>
   <p id="result"></p>
 
 <script>
-async function getKey(){
-  const userId = document.getElementById("userId").value;
-  if(!userId) return alert("ใส่ UserId ก่อน");
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get("userId");
+
+if(userId){
+  document.getElementById("userInfo").textContent = "Roblox UserId: " + userId;
+}else{
+  document.getElementById("userInfo").textContent = "❌ ไม่พบ UserId";
+}
+
+// ปุ่มสร้าง Key
+document.getElementById("createBtn").onclick = async () => {
+  if(!userId) return alert("UserId หาย");
 
   const res = await fetch(`/api/getKey?userId=${userId}`);
   const data = await res.json();
-
   document.getElementById("result").textContent =
-    `Key ของคุณ: ${data.key} (หมดอายุ ${new Date(data.expire).toLocaleString()})`;
-}
+    `Key ของคุณ: ${data.key} (หมดอายุ: ${new Date(data.expire).toLocaleString()})`;
+};
 </script>
 </body>
 </html>
