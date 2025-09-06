@@ -1,34 +1,70 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Get Key</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Key | ChulexHubX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>🔑 สร้าง Key</h1>
-  <p id="userInfo"></p>
-  <button id="createBtn">สร้าง Key</button>
-  <p id="result"></p>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-md text-center">
+    <h1 class="text-2xl font-bold mb-4">🔑 สร้าง Key ของคุณ</h1>
+    
+    <div id="userInfo" class="mb-4">
+      <p class="text-gray-400">กำลังโหลดข้อมูลผู้เล่น...</p>
+    </div>
 
-<script>
-const urlParams = new URLSearchParams(window.location.search);
-const userId = urlParams.get("userId");
+    <button id="genBtn" 
+      class="w-full py-2 mt-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-lg font-semibold transition">
+      สร้าง Key 🚀
+    </button>
 
-if(userId){
-  document.getElementById("userInfo").textContent = "Roblox UserId: " + userId;
-}else{
-  document.getElementById("userInfo").textContent = "❌ ไม่พบ UserId";
-}
+    <p id="status" class="mt-4 text-sm text-yellow-400"></p>
+  </div>
 
-// ปุ่มสร้าง Key
-document.getElementById("createBtn").onclick = async () => {
-  if(!userId) return alert("UserId หาย");
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("userId");
+    const userInfo = document.getElementById("userInfo");
+    const genBtn = document.getElementById("genBtn");
+    const status = document.getElementById("status");
 
-  const res = await fetch(`/api/getKey?userId=${userId}`);
-  const data = await res.json();
-  document.getElementById("result").textContent =
-    `Key ของคุณ: ${data.key} (หมดอายุ: ${new Date(data.expire).toLocaleString()})`;
-};
-</script>
+    if (!userId) {
+      userInfo.innerHTML = `<p class="text-red-400">❌ ไม่พบ userId ในลิงก์</p>`;
+      genBtn.disabled = true;
+    } else {
+      // โหลดข้อมูลผู้เล่นจาก Roblox API
+      fetch(`https://users.roblox.com/v1/users/${userId}`)
+        .then(res => res.json())
+        .then(user => {
+          const avatar = `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=180&height=180&format=png`;
+          userInfo.innerHTML = `
+            <img src="${avatar}" class="mx-auto rounded-full border-4 border-blue-500 mb-2">
+            <h2 class="text-xl font-bold">${user.name}</h2>
+            <p class="text-gray-400">UserId: ${userId}</p>
+          `;
+        })
+        .catch(() => {
+          userInfo.innerHTML = `<p class="text-red-400">⚠️ โหลดข้อมูลผู้เล่นล้มเหลว</p>`;
+        });
+    }
+
+    // กดปุ่มสร้าง Key
+    genBtn.addEventListener("click", () => {
+      status.textContent = "⏳ กำลังสร้าง Key...";
+      fetch(`/api/generateKey?userId=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.key) {
+            window.location.href = `/vk?key=${data.key}`;
+          } else {
+            status.textContent = "❌ สร้าง Key ไม่สำเร็จ";
+          }
+        })
+        .catch(() => {
+          status.textContent = "❌ ไม่สามารถเชื่อมต่อ API ได้";
+        });
+    });
+  </script>
 </body>
 </html>
