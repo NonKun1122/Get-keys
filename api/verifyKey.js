@@ -11,3 +11,4 @@ export default function handler(req, res) {
 
     res.json({valid:true, expire:found.expire});
               }
+}
