@@ -1,128 +1,129 @@
---// Loader Script with Key System
-local HttpService = game:GetService("HttpService")
+-- Loader Script | ใช้กับระบบ Key ฟรี 1 วัน / UserId
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local USER_ID = LocalPlayer.UserId
+local PlaceId = game.PlaceId
 
--- แก้เป็นโดเมนเว็บของคุณ (Vercel หรือ Netlify)
-local API_BASE = "https://get-keys-chulexhubx.vercel.app/api"
-local REDEEM_URL = "https://get-keys-chulexhubx.vercel.app/?userId="..USER_ID
+-- URL เว็บ Key
+local VK_PAGE_URL = "https://get-keys-chulexhubx.vercel.app/vk.html"
 
---// ฟังก์ชันตรวจสอบ Key
-local function verifyKey(key)
-    local ok, res = pcall(function()
-        return game:HttpGet(API_BASE.."/vk?key="..key.."&userId="..USER_ID)
+-- สร้าง UI
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "KeyLoaderGUI"
+
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 350, 0, 180)
+Frame.Position = UDim2.new(0.5, -175, 0.5, -90)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1,0,0,30)
+Title.Position = UDim2.new(0,0,0,0)
+Title.BackgroundTransparency = 1
+Title.Text = "🔑 ใส่ Key จากเว็บ"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+
+local KeyBox = Instance.new("TextBox", Frame)
+KeyBox.Size = UDim2.new(1,-20,0,40)
+KeyBox.Position = UDim2.new(0,10,0,45)
+KeyBox.PlaceholderText = "วาง Key จากเว็บ..."
+KeyBox.Text = ""
+KeyBox.ClearTextOnFocus = false
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.TextSize = 14
+KeyBox.TextColor3 = Color3.fromRGB(0,0,0)
+KeyBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
+
+local VerifyBtn = Instance.new("TextButton", Frame)
+VerifyBtn.Size = UDim2.new(1,-20,0,40)
+VerifyBtn.Position = UDim2.new(0,10,0,95)
+VerifyBtn.Text = "✅ Verify Key"
+VerifyBtn.Font = Enum.Font.GothamBold
+VerifyBtn.TextSize = 14
+VerifyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+
+local Status = Instance.new("TextLabel", Frame)
+Status.Size = UDim2.new(1,0,0,20)
+Status.Position = UDim2.new(0,0,1,-25)
+Status.BackgroundTransparency = 1
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 12
+Status.TextColor3 = Color3.fromRGB(255,255,0)
+Status.Text = ""
+
+local GetKeyBtn = Instance.new("TextButton", Frame)
+GetKeyBtn.Size = UDim2.new(1,-20,0,30)
+GetKeyBtn.Position = UDim2.new(0,10,0,145)
+GetKeyBtn.Text = "🌐 ไปสร้าง Key"
+GetKeyBtn.Font = Enum.Font.Gotham
+GetKeyBtn.TextSize = 14
+GetKeyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(50,50,200)
+
+-- ปุ่ม Get Key
+GetKeyBtn.MouseButton1Click:Connect(function()
+    -- เปิดเว็บ
+    pcall(function()
+        LocalPlayer:Kick("เปิดเว็บสร้าง Key: "..VK_PAGE_URL)
     end)
-    if not ok then return false,"ไม่สามารถเชื่อมต่อ API ได้" end
+end)
 
-    local data = HttpService:JSONDecode(res)
-    if data.valid then
-        return true,"หมดอายุ: "..os.date("%c", data.expire/1000)
-    else
-        return false,data.reason or "Key ไม่ถูกต้อง"
+-- ฟังก์ชันตรวจสอบ Key (จำลอง)
+local function checkKey(key)
+    -- สำหรับระบบฟรี, Key จะต้องตรงกับ pattern XXXX-XXXX-XXXX-XXXX-XXXX-XXXX
+    if key:match("^%u%u%u%u%-%u%u%u%u%-%u%u%u%u%-%u%u%u%u%-%u%u%u%u%-%u%u%u%u$") then
+        return true, 24*60*60 -- ใช้เวลาหมดอายุ 24 ชั่วโมง (วินาที)
     end
+    return false, 0
 end
 
---// ฟังก์ชันโหลดสคริปต์ตามแมพ
+-- ฟังก์ชันโหลดสคริปต์ตามแมพ
 local function loadScriptForMap()
     local scriptMap = {
-        [1234567890] = "https://YOUR-SITE.vercel.app/scripts/growagarden.lua",
-        [2345678901] = "https://YOUR-SITE.vercel.app/scripts/gardentow.lua",
-        [3456789012] = "https://YOUR-SITE.vercel.app/scripts/huntzombie.lua"
+        [126884695634066] = "https://raw.githubusercontent.com/NonKun1122/AntiAFK-Module/main/ChulexX.lua",
+        [1234567890] = "https://gat-keys.netlify.app/scripts/growagarden.lua",
+        [2345678901] = "https://gat-keys.netlify.app/scripts/gardentow.lua",
+        [3456789012] = "https://gat-keys.netlify.app/scripts/huntzombie.lua"
     }
-    local url = scriptMap[game.PlaceId]
+
+    local url = scriptMap[PlaceId]
     if not url then
-        LocalPlayer:Kick("❌ ไม่มีสคริปต์สำหรับแมพนี้")
+        Status.Text = "❌ ไม่มีสคริปต์สำหรับแมพนี้"
         return
     end
+
     local success, err = pcall(function()
         loadstring(game:HttpGet(url))()
     end)
     if not success then
-        warn("โหลดสคริปต์ไม่สำเร็จ:", err)
-        LocalPlayer:Kick("❌ Error โหลดสคริปต์")
+        Status.Text = "❌ โหลดสคริปต์ไม่สำเร็จ: "..err
+    else
+        Status.Text = "✅ โหลดสคริปต์เรียบร้อย!"
     end
 end
 
---// UI
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 320, 0, 200)
-Frame.Position = UDim2.new(0.5, -160, 0.5, -100)
-Frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-Frame.Active, Frame.Draggable = true, true
-
-local UICorner = Instance.new("UICorner", Frame)
-UICorner.CornerRadius = UDim.new(0, 12)
-
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.new(1,0,0,30)
-Title.Text = "🔑 Key Verification System"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
-Title.TextColor3 = Color3.fromRGB(255,255,255)
-Title.BackgroundTransparency = 1
-
-local KeyBox = Instance.new("TextBox", Frame)
-KeyBox.Size = UDim2.new(1,-20,0,35)
-KeyBox.Position = UDim2.new(0,10,0,45)
-KeyBox.PlaceholderText = "กรอก Key ที่นี่..."
-KeyBox.ClearTextOnFocus = false
-KeyBox.Text = ""
-KeyBox.TextSize = 14
-KeyBox.Font = Enum.Font.Gotham
-KeyBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
-
-local VerifyBtn = Instance.new("TextButton", Frame)
-VerifyBtn.Size = UDim2.new(0.5,-15,0,35)
-VerifyBtn.Position = UDim2.new(0,10,0,90)
-VerifyBtn.Text = "✅ Verify Key"
-VerifyBtn.TextSize = 14
-VerifyBtn.Font = Enum.Font.GothamBold
-VerifyBtn.TextColor3 = Color3.fromRGB(255,255,255)
-VerifyBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0,8)
-
-local GetKeyBtn = Instance.new("TextButton", Frame)
-GetKeyBtn.Size = UDim2.new(0.5,-15,0,35)
-GetKeyBtn.Position = UDim2.new(0.5,5,0,90)
-GetKeyBtn.Text = "🌐 Get Key"
-GetKeyBtn.TextSize = 14
-GetKeyBtn.Font = Enum.Font.GothamBold
-GetKeyBtn.TextColor3 = Color3.fromRGB(255,255,255)
-GetKeyBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0,8)
-
-local Status = Instance.new("TextLabel", Frame)
-Status.Size = UDim2.new(1,-20,0,30)
-Status.Position = UDim2.new(0,10,0,140)
-Status.Text = "⚠️ กรุณากรอก Key"
-Status.TextSize = 12
-Status.Font = Enum.Font.Gotham
-Status.TextColor3 = Color3.fromRGB(255,255,0)
-Status.BackgroundTransparency = 1
-
--- กด Get Key
-GetKeyBtn.MouseButton1Click:Connect(function()
-    setclipboard(REDEEM_URL)
-    Status.Text = "🌐 คัดลอกลิงก์แล้ว เปิดใน Browser!"
-end)
-
--- กด Verify
+-- ปุ่ม Verify
 VerifyBtn.MouseButton1Click:Connect(function()
     local key = KeyBox.Text
     if key == "" then
-        Status.Text = "⚠️ กรุณากรอก Key"
+        Status.Text = "⚠️ กรุณาใส่ Key"
         return
     end
+
     Status.Text = "⏳ กำลังตรวจสอบ..."
-    local ok, msg = verifyKey(key)
-    if ok then
-        Status.Text = "✅ Key ถูกต้อง! "..msg
-        wait(1)
-        ScreenGui:Destroy()
-        loadScriptForMap()
+    wait(0.5)
+    local ok, expire = checkKey(key)
+    if not ok then
+        Status.Text = "❌ Key ไม่ถูกต้อง"
     else
-        Status.Text = "❌ "..msg
+        Status.Text = "✅ Key ถูกต้อง! ใช้งานได้ 24 ชั่วโมง"
+        wait(0.5)
+        Frame:Destroy()
+        loadScriptForMap()
     end
 end)
