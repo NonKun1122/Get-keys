@@ -1,12 +1,11 @@
-export default function handler(req, res) {
-  const { key, userId } = req.query;
-  if (!key || !userId) return res.status(400).json({ valid:false, reason:"Missing key or userId" });
+let keys = {}; // ต้องแชร์กับ generateKey (ใน DB จริง)
+export default function handler(req, res){
+  const { userId, key } = req.query;
+  if(!userId || !key) return res.status(400).json({valid:false, reason:"Missing userId or key"});
 
-  const keys = loadKeys();
-
-  if(keys[userId] && keys[userId].key === key && keys[userId].expire > Date.now()){
-    return res.json({ valid:true, expire:keys[userId].expire });
+  const data = keys[userId];
+  if(data && data.key === key && data.expire > Date.now()){
+    return res.json({ valid:true, expire:data.expire });
   }
-
-  return res.json({ valid:false, reason:"Invalid or expired key" });
+  res.json({ valid:false, reason:"Key ไม่ถูกต้องหรือหมดอายุ" });
 }
