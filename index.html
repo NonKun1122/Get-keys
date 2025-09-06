@@ -1,17 +1,56 @@
-<input id="userId" placeholder="ใส่ UserId Roblox">
-<button id="getKey">สร้าง Key วันนี้</button>
-<p id="keyDisplay"></p>
-<p id="expireDisplay"></p>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chulex Hub - Get Key</title>
+<style>
+body { font-family: Arial; background:#f0f0f0; display:flex; justify-content:center; align-items:center; height:100vh;}
+.container { background:#fff; padding:25px; border-radius:12px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+button { padding:10px 18px; border:none; border-radius:8px; cursor:pointer; margin-top:10px;}
+.copyBtn { background:#4CAF50; color:#fff;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔑 สร้าง Key ของคุณ</h1>
+  <img id="avatar" width="150" style="border-radius:50%">
+  <h2 id="username">...</h2>
+  <p>UserId: <span id="userid"></span></p>
+  <button id="generateBtn">สร้าง Key วันนี้</button>
+  <p id="keyDisplay"></p>
+  <p id="expireDisplay"></p>
+  <button class="copyBtn" id="copyBtn">📋 คัดลอก Key</button>
+</div>
 
 <script>
-document.getElementById("getKey").onclick = async () => {
-  const userId = document.getElementById("userId").value;
-  if(!userId) return alert("ใส่ UserId ก่อน");
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get("userId");
+document.getElementById("userid").textContent = userId || "ไม่พบ";
 
+async function loadUser(){
+  if(!userId) return;
+  try {
+    let res = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+    let data = await res.json();
+    document.getElementById("username").textContent = data.name;
+    let avatar = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png`);
+    let img = await avatar.json();
+    document.getElementById("avatar").src = img.data[0].imageUrl;
+  } catch(e){ document.getElementById("username").textContent = "⚠️ โหลดข้อมูลผู้เล่นล้มเหลว"; }
+}
+loadUser();
+
+document.getElementById("generateBtn").onclick = async () => {
   const res = await fetch(`/api/generateKey?userId=${userId}`);
   const data = await res.json();
-
-  document.getElementById("keyDisplay").innerText = data.key;
+  document.getElementById("keyDisplay").innerText = "Key: " + data.key;
   document.getElementById("expireDisplay").innerText = "หมดอายุ: " + new Date(data.expire).toLocaleString();
 };
+document.getElementById("copyBtn").onclick = () => {
+  const text = document.getElementById("keyDisplay").innerText.replace("Key: ","");
+  navigator.clipboard.writeText(text).then(()=>alert("✅ คัดลอก Key แล้ว!"));
+};
 </script>
+</body>
+</html>
