@@ -2,80 +2,25 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>รับ Key วันละ 1 Key</title>
-<style>
-body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0;}
-.container { text-align:center; background:#fff; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2);}
-button { padding:8px 15px; font-size:14px; border:none; border-radius:8px; margin:0 5px; cursor:pointer;}
-.copyBtn { background:#4CAF50; color:white; }
-.generateBtn { background:#2196F3; color:white; }
-p { margin-top:15px; font-weight:bold; word-break:break-all; }
-</style>
+<title>Get Key</title>
 </head>
 <body>
-<div class="container">
-  <h1>🔑 รับ Key ของคุณ</h1>
-  <p id="keyDisplay">กดปุ่มเพื่อสร้าง Key</p>
-  <p id="expireDisplay"></p>
-  <button class="copyBtn" id="copyBtn">คัดลอก Key</button>
-  <button class="generateBtn" id="generateBtn">สร้าง Key ใหม่</button>
-</div>
+  <h1>🔑 ระบบแจก Key</h1>
+  <input id="userId" placeholder="ใส่ Roblox UserId ของคุณ">
+  <button onclick="getKey()">Get Key</button>
+  <p id="result"></p>
 
 <script>
-let keyData = JSON.parse(localStorage.getItem("activeKey") || "{}");
-let lastGenerate = parseInt(localStorage.getItem("lastGenerate") || 0);
+async function getKey(){
+  const userId = document.getElementById("userId").value;
+  if(!userId) return alert("ใส่ UserId ก่อน");
 
-function isToday(timestamp){
-  if(!timestamp) return false;
-  const last = new Date(timestamp);
-  const today = new Date();
-  return last.getFullYear() === today.getFullYear() &&
-         last.getMonth() === today.getMonth() &&
-         last.getDate() === today.getDate();
+  const res = await fetch(`/api/getKey?userId=${userId}`);
+  const data = await res.json();
+
+  document.getElementById("result").textContent =
+    `Key ของคุณ: ${data.key} (หมดอายุ ${new Date(data.expire).toLocaleString()})`;
 }
-
-function generateKey(length=24){
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let key = "";
-  for(let i=0;i<length;i++) key += chars.charAt(Math.floor(Math.random()*chars.length));
-  return key.match(/.{1,4}/g).join("-");
-}
-
-function showKey(){
-  if(keyData.key){
-    document.getElementById("keyDisplay").textContent = keyData.key;
-    document.getElementById("expireDisplay").textContent = "หมดอายุ: " + new Date(keyData.expire).toLocaleString();
-  } else {
-    document.getElementById("keyDisplay").textContent = "กดปุ่มเพื่อสร้าง Key";
-    document.getElementById("expireDisplay").textContent = "";
-  }
-}
-
-showKey();
-
-document.getElementById("generateBtn").addEventListener("click", ()=>{
-  const now = Date.now();
-  if(isToday(lastGenerate)){
-    alert("⚠️ คุณสร้าง Key วันนี้ไปแล้ว รอวันพรุ่งนี้");
-    return;
-  }
-
-  const newKey = generateKey();
-  const expire = now + 24*60*60*1000; // 24 ชั่วโมง
-  keyData = { key:newKey, expire:expire };
-  localStorage.setItem("activeKey", JSON.stringify(keyData));
-  localStorage.setItem("lastGenerate", now.toString());
-  lastGenerate = now;
-
-  showKey();
-});
-
-document.getElementById("copyBtn").addEventListener("click", ()=>{
-  if(keyData.key){
-    navigator.clipboard.writeText(keyData.key).then(()=> alert("คัดลอก Key แล้ว!"));
-  }
-});
 </script>
 </body>
 </html>
