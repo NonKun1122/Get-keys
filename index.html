@@ -46,7 +46,7 @@
         const res = await fetch(`/api/genkeys?userId=${userId}`);
         const data = await res.json();
         if (!data.key) throw new Error("Gen key failed");
-        window.location.href = `/vk?key=${data.key}&userId=${userId}`;
+        window.location.href = `/vk.html?key=${data.key}&userId=${userId}`;
       } catch (err) {
         alert("❌ สร้าง Key ไม่สำเร็จ");
       }
