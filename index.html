@@ -43,7 +43,7 @@
 
     async function createKey(userId) {
       try {
-        const res = await fetch(`/api/genKey?userId=${userId}`);
+        const res = await fetch(`/api/genkeys?userId=${userId}`);
         const data = await res.json();
         if (!data.key) throw new Error("Gen key failed");
         window.location.href = `/vk?key=${data.key}&userId=${userId}`;
