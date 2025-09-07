@@ -1,9 +1,11 @@
+-- Loader Script Roblox
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlaceId = game.PlaceId
 
-local API_URL = "https://get-keys-chulexhubx.vercel.app/api/vk"
+-- URL API ของคุณบน Vercel
+local API_VERIFY = "https://get-keys-chulexhubx.vercel.app/api/keys"
 
 -- UI
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
@@ -14,7 +16,7 @@ Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Frame.Active = true
 Frame.Draggable = true
 
--- แสดง UserId
+-- UserId
 local UserIdLabel = Instance.new("TextLabel", Frame)
 UserIdLabel.Size = UDim2.new(1,-20,0,30)
 UserIdLabel.Position = UDim2.new(0,10,0,10)
@@ -30,7 +32,6 @@ CopyBtn.Position = UDim2.new(1,-110,0,10)
 CopyBtn.Text = "📋 Copy"
 CopyBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
 CopyBtn.TextColor3 = Color3.fromRGB(255,255,255)
-
 CopyBtn.MouseButton1Click:Connect(function()
     setclipboard(tostring(LocalPlayer.UserId))
     UserIdLabel.Text = "✅ UserId คัดลอกแล้ว!"
@@ -58,16 +59,24 @@ Status.Position = UDim2.new(0,0,1,-25)
 Status.BackgroundTransparency = 1
 Status.TextColor3 = Color3.fromRGB(255,255,0)
 
--- ตรวจสอบ Key
+-- ฟังก์ชันตรวจสอบ Key
 VerifyBtn.MouseButton1Click:Connect(function()
     local key = KeyBox.Text
-    if key == "" then Status.Text="⚠️ ใส่ Key ก่อน"; return end
+    if key == "" then Status.Text = "⚠️ ใส่ Key ก่อน"; return end
 
     Status.Text = "⏳ กำลังตรวจสอบ..."
     local ok, res = pcall(function()
-        return HttpService:JSONDecode(game:HttpGet(API_URL.."?userId="..LocalPlayer.UserId.."&key="..key))
+        return HttpService:JSONDecode(
+            game:HttpGet(API_VERIFY.."?action=verify&userId="..LocalPlayer.UserId.."&key="..key)
+        )
     end)
-    if not ok or not res.valid then
+
+    if not ok then
+        Status.Text = "❌ ไม่สามารถเชื่อมต่อ API ได้"
+        return
+    end
+
+    if not res.valid then
         Status.Text = "❌ Key ไม่ถูกต้อง หรือหมดอายุ"
         return
     end
@@ -83,5 +92,12 @@ VerifyBtn.MouseButton1Click:Connect(function()
         [3456789012] = "https://gat-keys.netlify.app/scripts/huntzombie.lua"
     }
     local url = scriptMap[PlaceId]
-    if url then loadstring(game:HttpGet(url))() end
+    if url then
+        local s, e = pcall(function()
+            loadstring(game:HttpGet(url))()
+        end)
+        if not s then
+            warn("โหลดสคริปต์ไม่สำเร็จ: "..e)
+        end
+    end
 end)
