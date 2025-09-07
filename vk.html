@@ -2,43 +2,31 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your Key</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #1e1e1e; color: white; text-align: center; font-family: Arial, sans-serif; padding: 30px; }
+    .keyBox { background: #2c2c2c; padding: 20px; border-radius: 12px; display: inline-block; }
+    button { margin-top: 15px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+    .copy { background: #007bff; color: white; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-md text-center">
-    <h1 class="text-2xl font-bold mb-4">✅ Key ของคุณ</h1>
-    
-    <input id="keyBox" type="text" readonly
-      class="w-full py-2 px-3 text-center text-black font-bold rounded-lg"
-      value="Loading...">
-
-    <button id="copyBtn" 
-      class="w-full py-2 mt-4 bg-green-600 hover:bg-green-700 rounded-xl text-lg font-semibold transition">
-      📋 คัดลอก Key
-    </button>
-
-    <p id="status" class="mt-3 text-sm text-yellow-400"></p>
+<body>
+  <h1>🔑 Key ของคุณ</h1>
+  <div class="keyBox">
+    <p id="keyText"></p>
+    <button class="copy" onclick="copyKey()">📋 คัดลอก Key</button>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const key = params.get("key");
-    const keyBox = document.getElementById("keyBox");
-    const status = document.getElementById("status");
+    const userId = params.get("userId");
+    document.getElementById("keyText").innerText = `UserId: ${userId}\nKey: ${key}`;
 
-    if (!key) {
-      keyBox.value = "❌ ไม่พบ Key";
-    } else {
-      keyBox.value = key;
+    function copyKey() {
+      navigator.clipboard.writeText(key);
+      alert("✅ คัดลอก Key แล้ว!");
     }
-
-    document.getElementById("copyBtn").addEventListener("click", () => {
-      keyBox.select();
-      document.execCommand("copy");
-      status.textContent = "✅ คัดลอก Key แล้ว!";
-    });
   </script>
 </body>
 </html>
