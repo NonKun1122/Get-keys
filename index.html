@@ -1,100 +1,58 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chulex Hub - Key System</title>
-<style>
-  body { font-family: Arial,sans-serif; background:#111; color:#fff; text-align:center; padding:20px;}
-  input, button { padding:10px; margin:5px; font-size:14px; }
-  img { border-radius:50%; margin:10px 0; }
-  #playerInfo, #keyInfo { margin-top:15px; }
-  a { color:#0af; text-decoration:none; }
-</style>
+  <meta charset="UTF-8">
+  <title>Chulex Hub Key System</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1e1e1e; color: white; text-align: center; padding: 30px; }
+    .card { background: #2c2c2c; padding: 20px; border-radius: 12px; display: inline-block; width: 350px; }
+    img { border-radius: 50%; margin: 10px 0; }
+    button { margin-top: 15px; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+    .create { background: #28a745; color: white; }
+    .error { color: #ff4444; margin-top: 10px; }
+  </style>
 </head>
 <body>
+  <h1>🔑 Chulex Hub - Key System</h1>
+  <div id="playerInfo" class="card">⏳ กำลังโหลดข้อมูล...</div>
 
-<h2>🔑 Chulex Hub - Get Key</h2>
+  <script>
+    async function loadPlayer() {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get("userId");
+      if (!userId) {
+        document.getElementById("playerInfo").innerHTML = "<p class='error'>❌ ไม่มี UserId</p>";
+        return;
+      }
 
-<input id="userId" placeholder="ใส่ UserId ของคุณ">
-<button onclick="loadPlayer()">โหลดข้อมูลผู้เล่น</button>
+      try {
+        const res = await fetch(`/api/player?userId=${userId}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
 
-<div id="playerInfo">⚠️ ยังไม่มีข้อมูล</div>
-
-<button onclick="genKey()">สร้าง Key</button>
-
-<div id="keyInfo"></div>
-
-<script>
-let keyData = null;
-let lastGenerate = 0;
-
-// โหลดข้อมูลผู้เล่น
-async function loadPlayer() {
-  const userId = document.getElementById("userId").value.trim();
-  if (!userId) return alert("⚠️ กรุณาใส่ UserId");
-
-  try {
-    const res = await fetch(`/api/player?userId=${userId}`);
-    const data = await res.json();
-
-    if (data.success) {
-      document.getElementById("playerInfo").innerHTML = `
-        <img src="${data.avatar}" width="100"><br>
-        👤 <b>${data.displayName}</b> (@${data.name})<br>
-        🆔 ${data.userId}
-      `;
-    } else {
-      document.getElementById("playerInfo").innerText = data.reason;
+        document.getElementById("playerInfo").innerHTML = `
+          <h2>${data.name}</h2>
+          <img src="${data.avatar}" width="150" height="150"><br>
+          <p>UserId: ${data.id}</p>
+          <button class="create" onclick="createKey(${data.id})">✨ สร้าง Key</button>
+        `;
+      } catch (err) {
+        document.getElementById("playerInfo").innerHTML = "<p class='error'>⚠️ โหลดข้อมูลผู้เล่นล้มเหลว</p>";
+      }
     }
-  } catch (err) {
-    document.getElementById("playerInfo").innerText = "❌ โหลดข้อมูลผู้เล่นล้มเหลว";
-  }
-}
 
-// สร้าง Key วันละ 1 Key
-async function genKey() {
-  const userId = document.getElementById("userId").value.trim();
-  if (!userId) return alert("⚠️ กรุณาใส่ UserId");
-
-  const now = Date.now();
-  if (lastGenerate && new Date(lastGenerate).toDateString() === new Date(now).toDateString()) {
-    return alert("⚠️ คุณสร้าง Key วันนี้ไปแล้ว รอวันพรุ่งนี้");
-  }
-
-  try {
-    const res = await fetch(`/api/keys?action=gen&userId=${userId}`);
-    const data = await res.json();
-
-    if (data.success) {
-      keyData = data;
-      lastGenerate = now;
-      showKey(userId);
-    } else {
-      alert(data.reason || "❌ สร้าง Key ไม่สำเร็จ");
+    async function createKey(userId) {
+      try {
+        const res = await fetch(`/api/genKey?userId=${userId}`);
+        const data = await res.json();
+        if (!data.key) throw new Error("Gen key failed");
+        window.location.href = `/vk.html?key=${data.key}&userId=${userId}`;
+      } catch (err) {
+        alert("❌ สร้าง Key ไม่สำเร็จ");
+      }
     }
-  } catch (err) {
-    alert("❌ สร้าง Key ไม่สำเร็จ");
-  }
-}
 
-function showKey(userId) {
-  if (!keyData) return;
-
-  const keyInfo = document.getElementById("keyInfo");
-  keyInfo.innerHTML = `
-    ✅ Key ของคุณ: <b>${keyData.key}</b><br>
-    ⏳ หมดอายุ: ${new Date(keyData.expire).toLocaleString()}<br>
-    <button onclick="copyText('${keyData.key}')">📋 คัดลอก Key</button>
-    <button onclick="copyText('https://get-keys-chulexhubx.vercel.app/?userId=${userId}')">🔗 คัดลอกลิงก์</button>
-  `;
-}
-
-// คัดลอกข้อความ
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(()=> alert("✅ คัดลอกเรียบร้อย!"));
-}
-</script>
-
+    loadPlayer();
+  </script>
 </body>
 </html>
